@@ -349,6 +349,21 @@ module Geokit
           options[:conditions] = merge_conditions(options[:conditions], bounds_sql)
         end
 
+        # HACK to make the searches work with Rails 3,
+        # copied from Rails 2.3.5 ActiveRecord::Base. Highly untested!
+        def merge_conditions(*conditions)
+          segments = []
+
+          conditions.each do |condition|
+            unless condition.blank?
+              sql = sanitize_sql(condition)
+              segments << sql unless sql.blank?
+            end
+          end
+
+          "(#{segments.join(') AND (')})" unless segments.empty?
+        end
+
         # Extracts the origin instance out of the options if it exists and returns
         # it.  If there is no origin, looks for latitude and longitude values to 
         # create an origin.  The side-effect of the method is to remove these 
